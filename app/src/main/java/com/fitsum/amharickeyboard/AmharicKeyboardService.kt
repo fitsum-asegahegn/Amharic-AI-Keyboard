@@ -2,6 +2,7 @@ package com.fitsum.amharickeyboard
 
 import android.inputmethodservice.InputMethodService
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.Button
@@ -68,15 +69,23 @@ class AmharicKeyboardService : InputMethodService() {
             }
 
             for (key in rowKeys) {
+                // Style keycap with rounded corners
+                val keyBackground = GradientDrawable().apply {
+                    setColor(Color.parseColor("#2B3648"))
+                    cornerRadius = 14f
+                }
+
                 val btn = Button(this).apply {
                     text = key
-                    textSize = 14f
+                    textSize = if (key == "SPACE") 14f else 20f
                     setTextColor(Color.WHITE)
-                    setBackgroundColor(Color.parseColor("#2A3447"))
+                    background = keyBackground
+                    isAllCaps = false
+                    setPadding(0, 0, 0, 0)
                     
                     val weight = if (key == "SPACE") 4f else if (key == "⌫") 1.5f else 1f
                     val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight)
-                    params.setMargins(2, 2, 2, 2)
+                    params.setMargins(4, 5, 4, 5)
                     layoutParams = params
 
                     setOnClickListener {
