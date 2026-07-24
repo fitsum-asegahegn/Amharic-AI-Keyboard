@@ -66,7 +66,7 @@ class AmharicKeyboardService : InputMethodService() {
     }
 
     private suspend fun fetchGeminiFreeTier(text: String, apiKey: String): String {
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey"
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey"
         
         val jsonBody = """
             {
@@ -90,10 +90,11 @@ class AmharicKeyboardService : InputMethodService() {
         val maxRetries = 3
 
         while (retryCount <= maxRetries) {
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    val responseData = response.body?.string() ?: throw Exception("Empty response")
-                    val jsonObject = JSONObject(responseData)
+            val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+            response.use { resp ->
+                if (resp.isSuccessful) {
+                    val responseData = resp.body?.string() ?: throw Exception("Empty response")
+                    val jsonObject = JSONObject(responseData as String)
                     
                     return jsonObject.getJSONArray("candidates")
                         .getJSONObject(0)
@@ -102,12 +103,12 @@ class AmharicKeyboardService : InputMethodService() {
                         .getJSONObject(0)
                         .getString("text")
                         .trim()
-                } else if (response.code == 429) {
+                } else if (resp.code == 429) {
                     retryCount++
                     if (retryCount > maxRetries) throw Exception("Rate limit exceeded. Try again in a minute.")
                     delay((2000 * retryCount).toLong())
                 } else {
-                    throw Exception("API Error: ${response.code}")
+                    throw Exception("API Error: ${resp.code}")
                 }
             }
         }
