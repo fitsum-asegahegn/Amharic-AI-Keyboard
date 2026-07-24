@@ -57,13 +57,12 @@ class AmharicKeyboardService : InputMethodService() {
             listOf("?123", ",", "SPACE", ".", "↵")
         )
 
-        val rowHeightPx = (52 * resources.displayMetrics.density).toInt()
-
         for (rowKeys in rows) {
             val rowLayout = LinearLayout(this).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    rowHeightPx
+                    0,
+                    1f
                 )
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER
