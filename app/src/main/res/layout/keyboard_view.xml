@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="270dp"
+    android:layout_height="310dp"
     android:orientation="vertical"
     android:background="#121820"
     android:padding="4dp">
@@ -9,7 +9,7 @@
     <!-- Top AI Control Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="42dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="8dp"
@@ -27,14 +27,14 @@
         <Button
             android:id="@+id/btn_translate"
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
+            android:layout_height="34dp"
             android:text="Translate AI"
             android:textColor="#FFFFFF"
             android:textSize="11sp"
             android:backgroundTint="#008070" />
     </LinearLayout>
 
-    <!-- Container for QWERTY Keys -->
+    <!-- Container for QWERTY / Symbol Keys -->
     <LinearLayout
         android:id="@+id/keys_container"
         android:layout_width="match_parent"
