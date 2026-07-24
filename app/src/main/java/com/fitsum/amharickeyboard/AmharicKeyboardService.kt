@@ -5,8 +5,8 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
-import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.TextView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -69,23 +69,23 @@ class AmharicKeyboardService : InputMethodService() {
             }
 
             for (key in rowKeys) {
-                // Style keycap with rounded corners
+                // Creates clean rounded keycaps
                 val keyBackground = GradientDrawable().apply {
                     setColor(Color.parseColor("#2B3648"))
-                    cornerRadius = 14f
+                    cornerRadius = 16f
                 }
 
-                val btn = Button(this).apply {
+                val keyView = TextView(this).apply {
                     text = key
-                    textSize = if (key == "SPACE") 14f else 20f
+                    textSize = if (key == "SPACE") 14f else 22f
                     setTextColor(Color.WHITE)
+                    gravity = Gravity.CENTER
                     background = keyBackground
-                    isAllCaps = false
                     setPadding(0, 0, 0, 0)
                     
                     val weight = if (key == "SPACE") 4f else if (key == "⌫") 1.5f else 1f
                     val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight)
-                    params.setMargins(4, 5, 4, 5)
+                    params.setMargins(6, 6, 6, 6)
                     layoutParams = params
 
                     setOnClickListener {
@@ -97,7 +97,7 @@ class AmharicKeyboardService : InputMethodService() {
                         }
                     }
                 }
-                rowLayout.addView(btn)
+                rowLayout.addView(keyView)
             }
             container.addView(rowLayout)
         }
