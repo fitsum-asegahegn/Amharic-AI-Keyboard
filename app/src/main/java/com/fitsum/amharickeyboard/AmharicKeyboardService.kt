@@ -2,6 +2,7 @@ package com.fitsum.amharickeyboard
 
 import android.inputmethodservice.InputMethodService
 import android.view.View
+import com.fitsum.amharickeyboard.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
