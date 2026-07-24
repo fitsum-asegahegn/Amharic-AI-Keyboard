@@ -2,7 +2,6 @@ package com.fitsum.amharickeyboard
 
 import android.inputmethodservice.InputMethodService
 import android.view.View
-import com.fitsum.amharickeyboard.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -27,14 +26,20 @@ class AmharicKeyboardService : InputMethodService() {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    override fun onCreateInputView(): View {
-        val view = layoutInflater.inflate(R.layout.keyboard_view, null)
-        val translateBtn = view.findViewById<View>(R.id.btn_translate)
+        override fun onCreateInputView(): View {
+        val view = layoutInflater.inflate(
+            resources.getIdentifier("keyboard_view", "layout", packageName), 
+            null
+        )
+        val btnId = resources.getIdentifier("btn_translate", "id", packageName)
+        val translateBtn = if (btnId != 0) view.findViewById<View>(btnId) else view
+        
         translateBtn?.setOnClickListener {
             translateCurrentText()
         }
         return view
     }
+
 
     private fun translateCurrentText() {
         val apiKey = getApiKey()
