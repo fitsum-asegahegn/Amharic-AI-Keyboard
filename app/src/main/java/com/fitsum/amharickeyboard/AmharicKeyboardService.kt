@@ -5,8 +5,10 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -36,7 +38,12 @@ class AmharicKeyboardService : InputMethodService() {
     override fun onCreateInputView(): View {
         val layoutId = resources.getIdentifier("keyboard_view", "layout", packageName)
         val view = layoutInflater.inflate(layoutId, null)
-        
+
+        // Dynamically set keyboard height to 35% of the real screen height
+        val displayMetrics = resources.displayMetrics
+        val targetHeightPx = (displayMetrics.heightPixels * 0.35).toInt()
+        view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, targetHeightPx)
+
         val btnId = resources.getIdentifier("btn_translate", "id", packageName)
         val translateBtn = if (btnId != 0) view.findViewById<View>(btnId) else null
         translateBtn?.setOnClickListener { translateCurrentText() }
@@ -71,7 +78,6 @@ class AmharicKeyboardService : InputMethodService() {
         val currentRows = if (isSymbolsMode) symbolRows else letterRows
 
         for (rowKeys in currentRows) {
-            // Setting height = 0 & weight = 1f forces each row to stretch equally inside the 340dp height
             val rowLayout = LinearLayout(this).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -95,7 +101,7 @@ class AmharicKeyboardService : InputMethodService() {
                     gravity = Gravity.CENTER
                     background = keyBackground
                     setPadding(0, 0, 0, 0)
-                    
+
                     val weight = when (key) {
                         "SPACE" -> 4f
                         "⌫", "↵", "?123", "ABC" -> 1.5f
@@ -128,9 +134,9 @@ class AmharicKeyboardService : InputMethodService() {
     private fun translateCurrentText() {
         val apiKey = getApiKey()
         val inputConnection = currentInputConnection ?: return
-        
+
         if (apiKey.isBlank()) {
-            inputConnection.commitText(" ⚠️ Please add API key in app settings!", 1)
+            Toast.makeText(this, "Add your API key in app settings first", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -141,39 +147,39 @@ class AmharicKeyboardService : InputMethodService() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val amharicText = fetchGeminiFreeTier(rawText, apiKey)
+                val draft = callGemini(rawText, apiKey, DRAFT_PROMPT)
+                val finalText = callGemini(
+                    "ORIGINAL:\n$rawText\n\nDRAFT:\n$draft",
+                    apiKey,
+                    REVIEW_PROMPT
+                )
                 withContext(Dispatchers.Main) {
                     inputConnection.deleteSurroundingText(rawText.length + 5, 0)
-                    inputConnection.commitText(amharicText, 1)
+                    inputConnection.commitText(finalText, 1)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    inputConnection.deleteSurroundingText(5, 0)
-                    inputConnection.commitText(" ❌ Error: ${e.message}", 1)
+                    inputConnection.deleteSurroundingText(rawText.length + 5, 0)
+                    inputConnection.commitText(rawText, 1)
+                    Toast.makeText(this@AmharicKeyboardService, "Translation failed: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
     }
 
-    private suspend fun fetchGeminiFreeTier(text: String, apiKey: String): String {
+    private suspend fun callGemini(text: String, apiKey: String, systemPrompt: String): String {
         val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey"
-        
-        val jsonBody = """
-            {
-              "system_instruction": {
-                "parts": [
-                  {
-                    "text": "You are an expert Amharic translator and transliteration engine. When the user provides Latinized Amharic text, you must provide BOTH the proper Ethiopic script (Fidel) and an accurate English translation. Format your response exactly like this:\n\n🇪🇹 Amharic Script (Fidel)\n[Your transliterated Amharic text here]\n\n🇬🇧 English Translation\n[If the text includes Ethiopian time, add a brief note about time conversion, then provide the full English translation here]\n\nDo not include any other conversational filler outside of this structure."
-                  }
-                ]
-              },
-              "contents": [{
-                "parts": [{"text": "${text.replace("\"", "\\\"")}"}]
-              }]
-            }
-        """.trimIndent()
 
-        val requestBody = jsonBody.toRequestBody("application/json".toMediaType())
+        val jsonBody = JSONObject().apply {
+            put("system_instruction", JSONObject().apply {
+                put("parts", org.json.JSONArray().put(JSONObject().put("text", systemPrompt)))
+            })
+            put("contents", org.json.JSONArray().put(JSONObject().apply {
+                put("parts", org.json.JSONArray().put(JSONObject().put("text", text)))
+            }))
+        }
+
+        val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaType())
         val request = Request.Builder().url(url).post(requestBody).build()
 
         var retryCount = 0
@@ -184,9 +190,8 @@ class AmharicKeyboardService : InputMethodService() {
             response.use { resp ->
                 if (resp.isSuccessful) {
                     val responseData = resp.body?.string() ?: throw Exception("Empty response")
-                    val jsonObject = JSONObject(responseData as String)
-                    
-                    return jsonObject.getJSONArray("candidates")
+                    return JSONObject(responseData)
+                        .getJSONArray("candidates")
                         .getJSONObject(0)
                         .getJSONObject("content")
                         .getJSONArray("parts")
@@ -203,5 +208,10 @@ class AmharicKeyboardService : InputMethodService() {
             }
         }
         throw Exception("Failed after retries")
+    }
+
+    companion object {
+        const val DRAFT_PROMPT = "You are a fluent, native-level Amharic writer. The user writes casually — phonetic Amharic in Latin letters, plain English, or a mix, with typos and no punctuation. Convert everything into natural, correctly spelled Amharic (Ge'ez script), the way a native speaker would text it. Keep only genuine proper nouns untranslated. Output ONLY the Amharic text — no headers, no English translation, no notes, no quotation marks."
+        const val REVIEW_PROMPT = "You are a meticulous Amharic proofreader. Compare the ORIGINAL casual input against the DRAFT translation, word by word. Fix garbled orthography, wrong letters, anything left in English, hallucinated or dropped words. Output ONLY the corrected final Amharic text — no headers, no notes, no quotation marks."
     }
 }
