@@ -39,9 +39,21 @@ class AmharicKeyboardService : InputMethodService() {
         val layoutId = resources.getIdentifier("keyboard_view", "layout", packageName)
         val view = layoutInflater.inflate(layoutId, null)
 
-        // Dynamically set keyboard height to 35% of the real screen height
-        val displayMetrics = resources.displayMetrics
-        val targetHeightPx = (displayMetrics.heightPixels * 0.35).toInt()
+        // Use system-wide display metrics instead of this.resources.displayMetrics —
+        // the latter can report the IME window's own (already constrained) size
+        // rather than the true full screen height.
+        val realMetrics = android.content.res.Resources.getSystem().displayMetrics
+        val screenHeightPx = realMetrics.heightPixels
+        val targetHeightPx = (screenHeightPx * 0.35).toInt()
+
+        // TEMPORARY debug line — tells us the real numbers instead of guessing.
+        // Remove this Toast once the height is confirmed correct.
+        Toast.makeText(
+            this,
+            "Screen: ${screenHeightPx}px, Target: ${targetHeightPx}px",
+            Toast.LENGTH_LONG
+        ).show()
+
         view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, targetHeightPx)
 
         val btnId = resources.getIdentifier("btn_translate", "id", packageName)
