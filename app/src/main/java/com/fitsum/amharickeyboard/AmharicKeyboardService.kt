@@ -36,39 +36,33 @@ class AmharicKeyboardService : InputMethodService() {
         .build()
 
     override fun onCreateInputView(): View {
-        val layoutId = resources.getIdentifier("keyboard_view", "layout", packageName)
-        val view = layoutInflater.inflate(layoutId, null)
+    val layoutId = resources.getIdentifier("keyboard_view", "layout", packageName)
+    val view = layoutInflater.inflate(layoutId, null)
 
-        // Use system-wide display metrics instead of this.resources.displayMetrics —
-        // the latter can report the IME window's own (already constrained) size
-        // rather than the true full screen height.
-        val realMetrics = android.content.res.Resources.getSystem().displayMetrics
-        val screenHeightPx = realMetrics.heightPixels
-        val targetHeightPx = (screenHeightPx * 0.35).toInt()
+    val realMetrics = android.content.res.Resources.getSystem().displayMetrics
+    val screenHeightPx = realMetrics.heightPixels
+    val targetHeightPx = (screenHeightPx * 0.35).toInt()
 
-        // TEMPORARY debug line — tells us the real numbers instead of guessing.
-        // Remove this Toast once the height is confirmed correct.
-        Toast.makeText(
-            this,
-            "Screen: ${screenHeightPx}px, Target: ${targetHeightPx}px",
-            Toast.LENGTH_LONG
-        ).show()
+    view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, targetHeightPx)
 
-        view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, targetHeightPx)
+    val btnId = resources.getIdentifier("btn_translate", "id", packageName)
+    val translateBtn = if (btnId != 0) view.findViewById<android.widget.Button>(btnId) else null
 
-        val btnId = resources.getIdentifier("btn_translate", "id", packageName)
-        val translateBtn = if (btnId != 0) view.findViewById<View>(btnId) else null
-        translateBtn?.setOnClickListener { translateCurrentText() }
+    // TEMPORARY: show the numbers directly on the button instead of a Toast,
+    // since Toasts may be silently blocked by the phone's background pop-up settings.
+    translateBtn?.text = "H:$targetHeightPx/S:$screenHeightPx"
 
-        val containerId = resources.getIdentifier("keys_container", "id", packageName)
-        val container = if (containerId != 0) view.findViewById<LinearLayout>(containerId) else null
+    translateBtn?.setOnClickListener { translateCurrentText() }
 
-        if (container != null) {
-            setupKeys(container)
-        }
+    val containerId = resources.getIdentifier("keys_container", "id", packageName)
+    val container = if (containerId != 0) view.findViewById<LinearLayout>(containerId) else null
 
-        return view
+    if (container != null) {
+        setupKeys(container)
     }
+
+    return view
+}
 
     private fun setupKeys(container: LinearLayout) {
         container.removeAllViews()
