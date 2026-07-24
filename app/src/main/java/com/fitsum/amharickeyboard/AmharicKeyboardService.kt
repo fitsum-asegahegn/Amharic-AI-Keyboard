@@ -41,7 +41,7 @@ class AmharicKeyboardService : InputMethodService() {
 
     val realMetrics = android.content.res.Resources.getSystem().displayMetrics
     val screenHeightPx = realMetrics.heightPixels
-    val targetHeightPx = (screenHeightPx * 0.35).toInt()
+    val targetHeightPx = (screenHeightPx * 0.50).toInt()
 
     view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, targetHeightPx)
 
