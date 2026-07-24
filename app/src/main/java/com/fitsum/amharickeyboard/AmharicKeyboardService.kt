@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit
 
 class AmharicKeyboardService : InputMethodService() {
 
+    private var isSymbolsMode = false
+
     private fun getApiKey(): String {
         val prefs = getSharedPreferences("AmharicKeyboardPrefs", MODE_PRIVATE)
         return prefs.getString("gemini_api_key", "") ?: ""
@@ -43,21 +45,32 @@ class AmharicKeyboardService : InputMethodService() {
         val container = if (containerId != 0) view.findViewById<LinearLayout>(containerId) else null
 
         if (container != null) {
-            setupQwertyKeys(container)
+            setupKeys(container)
         }
 
         return view
     }
 
-    private fun setupQwertyKeys(container: LinearLayout) {
-        val rows = listOf(
+    private fun setupKeys(container: LinearLayout) {
+        container.removeAllViews()
+
+        val letterRows = listOf(
             listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
             listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
             listOf("z", "x", "c", "v", "b", "n", "m", "⌫"),
             listOf("?123", ",", "SPACE", ".", "↵")
         )
 
-        for (rowKeys in rows) {
+        val symbolRows = listOf(
+            listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
+            listOf("@", "#", "$", "%", "&", "-", "+", "(", ")", "/"),
+            listOf("*", "\"", "'", ":", ";", "!", "?", "⌫"),
+            listOf("ABC", ",", "SPACE", ".", "↵")
+        )
+
+        val currentRows = if (isSymbolsMode) symbolRows else letterRows
+
+        for (rowKeys in currentRows) {
             val rowLayout = LinearLayout(this).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -76,7 +89,7 @@ class AmharicKeyboardService : InputMethodService() {
 
                 val keyView = TextView(this).apply {
                     text = key
-                    textSize = if (key == "SPACE" || key == "?123") 13f else 20f
+                    textSize = if (key == "SPACE" || key == "?123" || key == "ABC") 13f else 20f
                     setTextColor(Color.WHITE)
                     gravity = Gravity.CENTER
                     background = keyBackground
@@ -84,20 +97,24 @@ class AmharicKeyboardService : InputMethodService() {
                     
                     val weight = when (key) {
                         "SPACE" -> 4f
-                        "⌫", "↵", "?123" -> 1.5f
+                        "⌫", "↵", "?123", "ABC" -> 1.5f
                         else -> 1f
                     }
                     val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight)
-                    params.setMargins(4, 4, 4, 4)
+                    params.setMargins(4, 5, 4, 5)
                     layoutParams = params
 
                     setOnClickListener {
-                        val ic = currentInputConnection ?: return@setOnClickListener
+                        val ic = currentInputConnection
                         when (key) {
-                            "⌫" -> ic.deleteSurroundingText(1, 0)
-                            "SPACE" -> ic.commitText(" ", 1)
-                            "↵" -> ic.commitText("\n", 1)
-                            else -> ic.commitText(key, 1)
+                            "?123", "ABC" -> {
+                                isSymbolsMode = !isSymbolsMode
+                                setupKeys(container)
+                            }
+                            "⌫" -> ic?.deleteSurroundingText(1, 0)
+                            "SPACE" -> ic?.commitText(" ", 1)
+                            "↵" -> ic?.commitText("\n", 1)
+                            else -> ic?.commitText(key, 1)
                         }
                     }
                 }
