@@ -1,7 +1,11 @@
 package com.fitsum.amharickeyboard
 
 import android.inputmethodservice.InputMethodService
+import android.graphics.Color
+import android.view.Gravity
 import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -26,20 +30,69 @@ class AmharicKeyboardService : InputMethodService() {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
 
-        override fun onCreateInputView(): View {
-        val view = layoutInflater.inflate(
-            resources.getIdentifier("keyboard_view", "layout", packageName), 
-            null
-        )
-        val btnId = resources.getIdentifier("btn_translate", "id", packageName)
-        val translateBtn = if (btnId != 0) view.findViewById<View>(btnId) else view
+    override fun onCreateInputView(): View {
+        val layoutId = resources.getIdentifier("keyboard_view", "layout", packageName)
+        val view = layoutInflater.inflate(layoutId, null)
         
-        translateBtn?.setOnClickListener {
-            translateCurrentText()
+        val btnId = resources.getIdentifier("btn_translate", "id", packageName)
+        val translateBtn = if (btnId != 0) view.findViewById<View>(btnId) else null
+        translateBtn?.setOnClickListener { translateCurrentText() }
+
+        val containerId = resources.getIdentifier("keys_container", "id", packageName)
+        val container = if (containerId != 0) view.findViewById<LinearLayout>(containerId) else null
+
+        if (container != null) {
+            setupQwertyKeys(container)
         }
+
         return view
     }
 
+    private fun setupQwertyKeys(container: LinearLayout) {
+        val rows = listOf(
+            listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
+            listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
+            listOf("z", "x", "c", "v", "b", "n", "m", "⌫"),
+            listOf("SPACE")
+        )
+
+        for (rowKeys in rows) {
+            val rowLayout = LinearLayout(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    0,
+                    1f
+                )
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER
+            }
+
+            for (key in rowKeys) {
+                val btn = Button(this).apply {
+                    text = key
+                    textSize = 14f
+                    setTextColor(Color.WHITE)
+                    setBackgroundColor(Color.parseColor("#2A3447"))
+                    
+                    val weight = if (key == "SPACE") 4f else if (key == "⌫") 1.5f else 1f
+                    val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight)
+                    params.setMargins(2, 2, 2, 2)
+                    layoutParams = params
+
+                    setOnClickListener {
+                        val ic = currentInputConnection ?: return@setOnClickListener
+                        when (key) {
+                            "⌫" -> ic.deleteSurroundingText(1, 0)
+                            "SPACE" -> ic.commitText(" ", 1)
+                            else -> ic.commitText(key, 1)
+                        }
+                    }
+                }
+                rowLayout.addView(btn)
+            }
+            container.addView(rowLayout)
+        }
+    }
 
     private fun translateCurrentText() {
         val apiKey = getApiKey()
