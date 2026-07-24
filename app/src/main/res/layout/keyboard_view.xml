@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="310dp"
+    android:layout_height="340dp"
     android:orientation="vertical"
     android:background="#121820"
     android:padding="4dp">
@@ -9,7 +9,7 @@
     <!-- Top AI Control Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="42dp"
+        android:layout_height="48dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="8dp"
@@ -21,16 +21,16 @@
             android:layout_height="wrap_content"
             android:text="✨ Fitsum AI Keyboard"
             android:textColor="#E0E0E0"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/btn_translate"
             android:layout_width="wrap_content"
-            android:layout_height="34dp"
+            android:layout_height="38dp"
             android:text="Translate AI"
             android:textColor="#FFFFFF"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:backgroundTint="#008070" />
     </LinearLayout>
 
