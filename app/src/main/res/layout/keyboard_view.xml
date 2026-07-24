@@ -1,9 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.inputmethodservice.KeyboardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/keyboard"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_alignParentBottom="true"
-    android:background="#ECEFF1"
-    android:keyPreviewLayout="@null" />
+    android:layout_height="260dp"
+    android:minHeight="260dp"
+    android:orientation="vertical"
+    android:background="#121820"
+    android:padding="8dp">
+
+    <!-- Top AI Control Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:background="#1E2633">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="✨ Fitsum AI Keyboard"
+            android:textColor="#E0E0E0"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_translate"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="Translate AI"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#008070" />
+    </LinearLayout>
+
+    <!-- Main Keyboard Surface Area -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Type Latin text above and tap 'Translate AI'"
+            android:textColor="#8A99AD"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+</LinearLayout>
