@@ -71,6 +71,7 @@ class AmharicKeyboardService : InputMethodService() {
         val currentRows = if (isSymbolsMode) symbolRows else letterRows
 
         for (rowKeys in currentRows) {
+            // Setting height = 0 & weight = 1f forces each row to stretch equally inside the 340dp height
             val rowLayout = LinearLayout(this).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -89,7 +90,7 @@ class AmharicKeyboardService : InputMethodService() {
 
                 val keyView = TextView(this).apply {
                     text = key
-                    textSize = if (key == "SPACE" || key == "?123" || key == "ABC") 13f else 20f
+                    textSize = if (key == "SPACE" || key == "?123" || key == "ABC") 14f else 22f
                     setTextColor(Color.WHITE)
                     gravity = Gravity.CENTER
                     background = keyBackground
