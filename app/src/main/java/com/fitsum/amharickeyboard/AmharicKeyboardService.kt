@@ -34,7 +34,16 @@ class AmharicKeyboardService : InputMethodService() {
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
+    override fun onWindowShown() {
+    super.onWindowShown()
 
+    val realMetrics = android.content.res.Resources.getSystem().displayMetrics
+    val screenHeightPx = realMetrics.heightPixels
+    val targetHeightPx = (screenHeightPx * 0.35).toInt()
+
+    // Set the height on the actual Window hosting the IME, not just the inner view.
+    window?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, targetHeightPx)
+    }
     override fun onCreateInputView(): View {
     val layoutId = resources.getIdentifier("keyboard_view", "layout", packageName)
     val view = layoutInflater.inflate(layoutId, null)
