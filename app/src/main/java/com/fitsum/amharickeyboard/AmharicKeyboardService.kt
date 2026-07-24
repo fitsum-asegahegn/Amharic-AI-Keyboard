@@ -54,38 +54,42 @@ class AmharicKeyboardService : InputMethodService() {
             listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
             listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
             listOf("z", "x", "c", "v", "b", "n", "m", "⌫"),
-            listOf("SPACE")
+            listOf("?123", ",", "SPACE", ".", "↵")
         )
+
+        val rowHeightPx = (52 * resources.displayMetrics.density).toInt()
 
         for (rowKeys in rows) {
             val rowLayout = LinearLayout(this).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    1f
+                    rowHeightPx
                 )
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER
             }
 
             for (key in rowKeys) {
-                // Creates clean rounded keycaps
                 val keyBackground = GradientDrawable().apply {
-                    setColor(Color.parseColor("#2B3648"))
-                    cornerRadius = 16f
+                    setColor(if (key == "↵") Color.parseColor("#008070") else Color.parseColor("#2B3648"))
+                    cornerRadius = 14f
                 }
 
                 val keyView = TextView(this).apply {
                     text = key
-                    textSize = if (key == "SPACE") 14f else 22f
+                    textSize = if (key == "SPACE" || key == "?123") 13f else 20f
                     setTextColor(Color.WHITE)
                     gravity = Gravity.CENTER
                     background = keyBackground
                     setPadding(0, 0, 0, 0)
                     
-                    val weight = if (key == "SPACE") 4f else if (key == "⌫") 1.5f else 1f
+                    val weight = when (key) {
+                        "SPACE" -> 4f
+                        "⌫", "↵", "?123" -> 1.5f
+                        else -> 1f
+                    }
                     val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight)
-                    params.setMargins(6, 6, 6, 6)
+                    params.setMargins(4, 4, 4, 4)
                     layoutParams = params
 
                     setOnClickListener {
@@ -93,6 +97,7 @@ class AmharicKeyboardService : InputMethodService() {
                         when (key) {
                             "⌫" -> ic.deleteSurroundingText(1, 0)
                             "SPACE" -> ic.commitText(" ", 1)
+                            "↵" -> ic.commitText("\n", 1)
                             else -> ic.commitText(key, 1)
                         }
                     }
